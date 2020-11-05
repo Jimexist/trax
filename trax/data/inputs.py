@@ -374,6 +374,35 @@ def FilterByLength(max_length,  # pylint: disable=invalid-name
   return filtered
 
 
+def _pad_to_length(generator, len_map=None, pad_value=0):
+  for example in generator:
+    example = list(example)
+    if len_map is not None:
+      for key, len in len_map.items():
+        padding_len = max([0, len-example[key].shape[1]])
+        example[key] = np.append(example[key],
+                                 [[pad_value[key]]*padding_len],
+                                 -1)
+        logging.info(example[key])
+    yield tuple(example)
+
+
+def PadToLength(len_map=None, pad_value=0):  # pylint: disable=invalid-name
+  """Pads the values to lengths given in `len_map'.
+
+  len_map contains a dictionary of example keys to dimension sizes.
+
+  Args:
+    len_map: dict of int to int, we pad examples to lengths
+      given by the values of the dict.
+    value_map: dict of int to int. The value gets applied to
+      constant_values on numpy.pad per given dimension.
+  Returns:
+    Function to pad examples to given lengths.
+  """
+  return lambda g: _pad_to_length(g, len_map, pad_value)
+
+
 def _append_value(generator, val=None):
   for example in generator:
     example = list(example)
